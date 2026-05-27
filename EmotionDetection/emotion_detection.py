@@ -6,19 +6,22 @@ def emotion_detector(text_to_analyze):
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
     myobj = { "raw_document": { "text": text_to_analyze } }
     response = requests.post(url, json = myobj, headers=headers)
-    if response.status_code >= 400 and response.status_code < 500:
-        return "Cliente error"
-    if response.status_code >= 500 :
-        return "Server error"
-        
-    res = response.json()['emotionPredictions']
-    dictresponse =  res[0]['emotion']
+    emotion_dict = {'anger': None, 'disgust': None, 'fear': None,
+    'joy': None, 'sadness': None, 'dominant_emotion': None }
     
-    anger_score = dictresponse['anger']
-    disgust_score = dictresponse['disgust']
-    fear_score = dictresponse['fear']
-    joy_score = dictresponse['joy']
-    sadness_score = dictresponse['sadness']
+    if response.status_code == 400 :
+        return emotion_dict
+
+    res = response.json() 
+    res = res['emotionPredictions'][0]
+
+    dictresponse =  res['emotion']
+    
+    emotion_dict['anger'] = dictresponse['anger']
+    emotion_dict['disgust'] = dictresponse['disgust']
+    emotion_dict['fear'] = dictresponse['fear']
+    emotion_dict['joy'] = dictresponse['joy']
+    emotion_dict['sadness'] = dictresponse['sadness']
     dom_key = ''
     max_score = 0.0
     for key in dictresponse.keys():
@@ -26,12 +29,6 @@ def emotion_detector(text_to_analyze):
             dom_key = key
             max_score = dictresponse[key]
 
-    dominant_emotion = dom_key
+    emotion_dict['dominant_emotion'] = dom_key
     
-    return {'anger': anger_score,
-    'disgust': disgust_score,
-    'fear': fear_score,
-    'joy': joy_score,
-    'sadness': sadness_score,
-    'dominant_emotion': dom_key
-    }
+    return emotion_dict
